@@ -1,0 +1,28 @@
+{
+  "name": "databox-os-monitor-driver",
+  "version": "0.1.0",
+  "description": "Databox driver to log local os",
+  "scripts": {
+    "start": "node src/main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/me-box/databox-os-monitor-driver.git"
+  },
+  "keywords": [
+    "docker",
+    "personal",
+    "data"
+  ],
+  "author": "Anthony Brown <Anthony.Brown@nottingham.ac.uk> ()",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/me-box/databox-os-monitor-driver/issues"
+  },
+  "homepage": "https://github.com/me-box/databox-os-monitor-driver",
+  "dependencies": {
+    "promise": "",
+    "os-monitor":"",
+    "request": "^2.69.0"
+  }
+}
