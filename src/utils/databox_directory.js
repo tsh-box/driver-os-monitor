@@ -5,7 +5,41 @@ var Promise = require('promise');
 var databox_directory_url = process.env.DATABOX_DIRECTORY_ENDPOINT;
 
 
-exports.register_driver = function(hostname, description, vendor_id, done) { // requires a description which is most liekely the vendor name and must be unique, will return databox global vendor id
+// register datastore with directory will retry if directory is not ready 
+var register = function(vendorName,driverName,driverDescription) {
+  return new Promise((resolve, reject) => {
+    
+		var vender_id = null;
+    var driver_id = null;
+
+    console.log("Registering vendor:: " + vendorName + " ....");
+
+    var registerCallback = function (err, data) {
+      if(err) {
+        console.log(err);
+        console.log("Can not register vendor with directory! waiting 5s before retrying");
+        setTimeout(register,5000,vendorName,driverName,driverDescription);
+        return;
+      }
+      vender_id = data['id'];
+      register_driver(driverName, driverDescription, vender_id, function (err, data) {
+        if(err) {
+          console.log(err);
+          console.log("Can not register datastore with directory! waiting 5s before retrying");
+          setTimeout(register,5000)
+          return;
+        }
+        driver_id = data['id'];
+        resolve({vender_id,driver_id});
+      });
+    };
+
+    register_vendor(vendorName,registerCallback);
+  });
+
+}
+
+var register_driver = function(hostname, description, vendor_id, done) { // requires a description which is most liekely the vendor name and must be unique, will return databox global vendor id
 	var options = {
   		uri: databox_directory_url+'/driver/register',
   		method: 'POST',
@@ -22,7 +56,7 @@ exports.register_driver = function(hostname, description, vendor_id, done) { // 
 	});
 }
 
-exports.register_vendor = function(description, done) { // requires a description which is most liekely the vendor name and must be unique, will return databox global vendor id
+var register_vendor = function(description, done) { // requires a description which is most liekely the vendor name and must be unique, will return databox global vendor id
 	var options = {
   		uri: databox_directory_url+'/vendor/register',
   		method: 'POST',
@@ -53,10 +87,13 @@ exports.register_sensor_type = function(description, done) { // requires a descr
 				if (error) {
 					reject(error);
 				}
+				console.log(body);
 				resolve(body['id']);
 		});
   });
 }
+exports.register = register;
+
 
 exports.register_sensor = function(driver_id, sensor_type_id, datastore_id, vendor_id, vendor_sensor_id, unit, short_unit, description, location) { 
   return new Promise((resolve, reject) => {
