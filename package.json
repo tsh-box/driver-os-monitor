@@ -3,7 +3,15 @@
   "version": "0.1.0",
   "description": "Databox driver to log local os",
   "scripts": {
-    "start": "node src/main.js"
+    "start": "node src/main.js",
+    "build": "docker build -t databox/databox-os-monitor-driver .",
+    "deploy": "docker tag databox/databox-os-monitor-driver registry.upintheclouds.org/databox-os-monitor-driver && docker push registry.upintheclouds.org/databox-os-monitor-driver",
+    "clean": "node ./node_modules/modclean/bin/modclean.js -p ./node_modules/ -r",
+    "getshell": "docker exec -i -t databox-os-monitor-driver /bin/bash",
+    "kill": "docker kill databox-os-monitor-driver",
+    "attach": "docker attach databox-os-monitor-driver",
+    "shell": "docker run -i -t databox/databox-os-monitor-driver /bin/bash",
+    "local": "docker run -i -t databox/databox-os-monitor-driver"
   },
   "repository": {
     "type": "git",
