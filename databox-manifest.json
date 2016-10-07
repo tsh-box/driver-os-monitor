@@ -4,7 +4,7 @@
 	"name": "databox-os-monitor-driver",
 	"version": "0.1.0",
 
-	"description": "The Databox driver to monitor the local os",
+	"description": "A Databox driver to monitor the local os",
 	"author": "Anthony Brown <Anthony.Brown@nottingham.ac.uk> ()",
 	"license": "MIT",
 

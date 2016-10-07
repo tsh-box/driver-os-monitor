@@ -1,4 +1,5 @@
 var request = require('request');
+var Promise = require('promise');
 
 
 var databox_directory_url = process.env.DATABOX_DIRECTORY_ENDPOINT;
@@ -17,10 +18,7 @@ exports.register_driver = function(hostname, description, vendor_id, done) { // 
 	};
 
 	request(options, function (error, response, body) {
-  		if (!error && response.statusCode == 200) {
-    	 return done(body);
-  		}
-  		return done(error);
+  		return done(error,body);
 	});
 }
 
@@ -35,10 +33,7 @@ exports.register_vendor = function(description, done) { // requires a descriptio
 	};
 
 	request(options, function (error, response, body) {
-  		if (!error && response.statusCode == 200) {
-    	 return done(body);
-  		}
-  		return done(error);
+  		return done(error,body);
 	});
 }
 
@@ -63,31 +58,35 @@ exports.register_sensor_type = function(description, done) { // requires a descr
   });
 }
 
-exports.register_sensor = function(driver_id, sensor_type_id, datastore_id, vendor_id, vendor_sensor_id, unit, short_unit, description, location, done) {
-	var options = {
-  		uri: databox_directory_url+'/sensor/register',
-  		method: 'POST',
-  		json: 
-  		{
-    		"description" : description, 
-            "driver_id": driver_id, 
-            "sensor_type_id" : sensor_type_id, 
-            "datastore_id" : datastore_id, 
-            "vendor_id" : vendor_id, 
-            "vendor_sensor_id" : vendor_sensor_id, 
-            "unit" : unit, 
-            "short_unit" : short_unit, 
-            "location" : location
-  		}
-	};
+exports.register_sensor = function(driver_id, sensor_type_id, datastore_id, vendor_id, vendor_sensor_id, unit, short_unit, description, location) { 
+  return new Promise((resolve, reject) => {
 
-	request(options, function (error, response, body) {
-  		if (!error && response.statusCode == 200) {
-    	 return done(body);
-  		}
-  		return done(error);
-	});
+    var options = {
+        uri: databox_directory_url+'/sensor/register',
+        method: 'POST',
+        json: 
+        {
+          "description" : description, 
+              "driver_id": driver_id, 
+              "sensor_type_id" : sensor_type_id, 
+              "datastore_id" : datastore_id, 
+              "vendor_id" : vendor_id, 
+              "vendor_sensor_id" : vendor_sensor_id, 
+              "unit" : unit, 
+              "short_unit" : short_unit, 
+              "location" : location
+        }
+    };
+
+    request(options, function (error, response, body) {
+        if (error) {
+          reject(error);
+        }
+        resolve(body);
+    });
+  });
 }
+
 
 exports.register_actuator_type = function(description, done) {
 	var options = {
@@ -165,21 +164,24 @@ exports.get_my_registered_sensors = function(vendor_id, done) {
 }
 
 exports.get_datastore_id = function(hostname, done) {
-	var options = {
-  		uri: databox_directory_url+'/datastore/get_id',
-  		method: 'POST',
-  		json:
-  		{
-  			"hostname": hostname
-  		}
-	};
+	return new Promise((resolve, reject) => {
+    var options = {
+    		uri: databox_directory_url+'/datastore/get_id',
+    		method: 'POST',
+    		json:
+    		{
+    			"hostname": hostname
+    		}
+  	};
 
-	request(options, function (error, response, body) {
-  		if (!error && response.statusCode == 200) {
-    	 return done(body);
-  		}
-  		return done(error);
-	});
+  	request(options, function (error, response, body) {
+        if(error) {
+          reject(error);
+          return;
+        }
+        resolve(body['id']);
+  	});
+  });
 }
 
 exports.get_registered_sensor_types = function(done) { // takes in 
