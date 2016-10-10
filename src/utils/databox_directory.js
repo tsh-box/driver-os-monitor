@@ -16,28 +16,32 @@ var register = function(vendorName,driverName,driverDescription) {
 
     var registerCallback = function (err, data) {
       if(err) {
-        console.log(err);
         console.log("Can not register vendor with directory! waiting 5s before retrying");
-        setTimeout(register,5000,vendorName,driverName,driverDescription);
+        setTimeout(register_vendor,5000,vendorName,registerCallback);
         return;
       }
       vender_id = data['id'];
-      register_driver(driverName, driverDescription, vender_id, function (err, data) {
+      
+
+      console.log("Registering driver:: " + driverName + " ....");
+      var registerDriverCallback = function (err, data) {
         if(err) {
-          console.log(err);
-          console.log("Can not register datastore with directory! waiting 5s before retrying");
-          setTimeout(register,5000)
+          console.log("Can not register driver with directory! waiting 5s before retrying");
+          setTimeout(register_driver,5000, driverName, driverDescription, vender_id, registerDriverCallback)
           return;
         }
         driver_id = data['id'];
-        resolve({vender_id,driver_id});
-      });
+        resolve({"vender_id":vender_id,"driver_id":driver_id}); 
+      }
+      register_driver(driverName, driverDescription, vender_id, registerDriverCallback);
+    
     };
 
     register_vendor(vendorName,registerCallback);
   });
-
 }
+exports.register = register;
+
 
 var register_driver = function(hostname, description, vendor_id, done) { // requires a description which is most liekely the vendor name and must be unique, will return databox global vendor id
 	var options = {
@@ -71,7 +75,7 @@ var register_vendor = function(description, done) { // requires a description wh
 	});
 }
 
-exports.register_sensor_type = function(description, done) { // requires a description which describes the catagory of sensors, if already exits then returns id 
+exports.register_sensor_type = function(description) { // requires a description which describes the catagory of sensors, if already exits then returns id 
 	return new Promise((resolve, reject) => {
 
 		var options = {
@@ -88,7 +92,7 @@ exports.register_sensor_type = function(description, done) { // requires a descr
 					reject(error);
 				}
 				console.log(body);
-				resolve(body['id']);
+				resolve(body);
 		});
   });
 }
@@ -103,7 +107,7 @@ exports.register_sensor = function(driver_id, sensor_type_id, datastore_id, vend
         method: 'POST',
         json: 
         {
-          "description" : description, 
+              "description" : description, 
               "driver_id": driver_id, 
               "sensor_type_id" : sensor_type_id, 
               "datastore_id" : datastore_id, 
@@ -210,7 +214,6 @@ exports.get_datastore_id = function(hostname, done) {
     			"hostname": hostname
     		}
   	};
-
   	request(options, function (error, response, body) {
         if(error) {
           reject(error);

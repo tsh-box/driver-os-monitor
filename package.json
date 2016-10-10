@@ -29,8 +29,13 @@
   },
   "homepage": "https://github.com/me-box/databox-os-monitor-driver",
   "dependencies": {
+    "body-parser": "^1.15.2",
+    "express": "^4.14.0",
+    "intercept-stdout": "^0.1.2",
+    "node-json2html": "^1.0.0",
+    "os-monitor": "",
     "promise": "",
-    "os-monitor":"",
-    "request": "^2.69.0"
+    "request": "^2.69.0",
+    "modclean":""
   }
 }

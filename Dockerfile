@@ -12,10 +12,11 @@ RUN curl --insecure -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VER
   && ln -s /usr/local/bin/node /usr/local/bin/nodejs
 
 #node app config
-COPY ./src /src
+ADD ./src /src
 ADD ./package.json /package.json
 
 RUN npm install
+RUN npm run clean
 
 EXPOSE 8080
 
