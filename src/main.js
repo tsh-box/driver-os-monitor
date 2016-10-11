@@ -50,6 +50,10 @@ databox_directory.register('databox','databox-os-monitor-driver','Cool OS monito
     console.log(ids);
     VENDOR_ID = ids['vendor_id'];
     DRIVER_ID = ids['driver_id'];
+    
+    console.log("VENDOR_ID", VENDOR_ID);
+    console.log("DRIVER_ID", DRIVER_ID);
+
     return databox_directory.get_datastore_id('datastore-timeseries');
   })
   .then ((datastore_id) => {

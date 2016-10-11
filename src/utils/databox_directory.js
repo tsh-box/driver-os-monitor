@@ -9,7 +9,7 @@ var databox_directory_url = process.env.DATABOX_DIRECTORY_ENDPOINT;
 var register = function(vendorName,driverName,driverDescription) {
   return new Promise((resolve, reject) => {
     
-		var vender_id = null;
+		var vendor_id = null;
     var driver_id = null;
 
     console.log("Registering vendor:: " + vendorName + " ....");
@@ -20,20 +20,21 @@ var register = function(vendorName,driverName,driverDescription) {
         setTimeout(register_vendor,5000,vendorName,registerCallback);
         return;
       }
-      vender_id = data['id'];
+      vendor_id = data['id'];
       
 
       console.log("Registering driver:: " + driverName + " ....");
       var registerDriverCallback = function (err, data) {
         if(err) {
           console.log("Can not register driver with directory! waiting 5s before retrying");
-          setTimeout(register_driver,5000, driverName, driverDescription, vender_id, registerDriverCallback)
+          setTimeout(register_driver,5000, driverName, driverDescription, vendor_id, registerDriverCallback)
           return;
         }
+        console.log("\n------------------\n",data,"\n------------------\n");
         driver_id = data['id'];
-        resolve({"vender_id":vender_id,"driver_id":driver_id}); 
+        resolve({"vendor_id":vendor_id,"driver_id":driver_id}); 
       }
-      register_driver(driverName, driverDescription, vender_id, registerDriverCallback);
+      register_driver(driverName, driverDescription, vendor_id, registerDriverCallback);
     
     };
 
