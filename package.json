@@ -11,7 +11,8 @@
     "kill": "docker kill databox-os-monitor-driver",
     "attach": "docker attach databox-os-monitor-driver",
     "shell": "docker run -i -t databox/databox-os-monitor-driver /bin/bash",
-    "local": "docker run -i -t databox/databox-os-monitor-driver"
+    "local": "docker run -i -t databox/databox-os-monitor-driver",
+    "tail": "docker logs -f databox-os-monitor-driver"
   },
   "repository": {
     "type": "git",
