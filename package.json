@@ -6,6 +6,8 @@
     "start": "node src/main.js",
     "build": "docker build -t databox/databox-os-monitor-driver .",
     "deploy": "docker tag databox/databox-os-monitor-driver registry.upintheclouds.org/databox-os-monitor-driver && docker push registry.upintheclouds.org/databox-os-monitor-driver",
+    "build-arm": "docker build -f Dockerfile-arm -t databox/databox-os-monitor-driver-arm .",
+    "deploy-arm": "docker tag databox/databox-os-monitor-driver-arm registry.upintheclouds.org/databox-os-monitor-driver-arm && docker push registry.upintheclouds.org/databox-os-monitor-driver-arm",
     "clean": "node ./node_modules/modclean/bin/modclean.js -p ./node_modules/ -r",
     "getshell": "docker exec -i -t databox-os-monitor-driver /bin/bash",
     "kill": "docker kill databox-os-monitor-driver",
