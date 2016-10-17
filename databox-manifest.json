@@ -8,11 +8,13 @@
 	"author": "Anthony Brown <Anthony.Brown@nottingham.ac.uk> ()",
 	"license": "MIT",
 
+	"databox-type":"driver",
+
 	"tags": [
 		"monitor",
 		"os"
 	],
-
+	
 	"homepage": "https://github.com/me-box/databox-os-monitor-driver",
 	"repository": {
 		"type": "git",
