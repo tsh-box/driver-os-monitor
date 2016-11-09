@@ -33,7 +33,7 @@ app.listen(8080, function () {
 });
 
 
-var DATASTORE_TIMESERIES_ENDPOINT = process.env.DATASTORE_TIMESERIES_ENDPOINT;
+var DATASTORE_TIMESERIES_ENDPOINT = process.env.DATABOX_OS_MONITOR_DRIVER_DATASTORE_TIMESERIES_ENDPOINT;
 
 
 var sensors = ['loadavg1','loadavg5','loadavg15','freemem'];
@@ -54,7 +54,7 @@ databox_directory.register('databox','databox-os-monitor-driver','Cool OS monito
     console.log("VENDOR_ID", VENDOR_ID);
     console.log("DRIVER_ID", DRIVER_ID);
 
-    return databox_directory.get_datastore_id('datastore-timeseries');
+    return databox_directory.get_datastore_id('databox-os-monitor-driver-datastore-timeseries');
   })
   .then ((datastore_id) => {
     DATASTORE_ID = datastore_id;
