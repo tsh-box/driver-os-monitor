@@ -37,11 +37,9 @@
   "dependencies": {
     "body-parser": "^1.15.2",
     "express": "^4.14.0",
-    "intercept-stdout": "^0.1.2",
-    "node-json2html": "^1.0.0",
     "os-monitor": "",
-    "promise": "",
     "request": "^2.69.0",
-    "modclean":""
+    "modclean":"",
+    "ws": "^2.0.3"
   }
 }

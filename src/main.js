@@ -1,105 +1,47 @@
-var Promise = require('promise');
-var request = require('request');
+/*jshint esversion: 6 */
+var https = require('https');
+var express = require("express");
+var bodyParser = require("body-parser");
+
 var monitor = require("os-monitor");
-var databox_directory = require("./utils/databox_directory.js");
 
+var databoxRequest = require('./lib/databox-request-promise.js');
+var databoxDatasourceHelper = require('./lib/databox-datasource-helper.js');
 
 //
-//Capture std out for later use in the /debug endpoint 
+// Get the needed Environment variables 
 //
-var express = require('express');
-var json2html = require('node-json2html');
-var interceptOutput = require("intercept-stdout");
-var log = [{"msg":"hello"},{"msg":"world"}];
-var unhook_intercept = interceptOutput(function(txt) {
-    log.push({msg:txt});
-    if(log.length > 100) {
-        log.shift();
-    }
-    return txt;
-});
+var DATASTORE_BLOB_ENDPOINT = process.env.DATABOX_OS_MONITOR_DRIVER_DATABOX_STORE_BLOB_ENDPOINT;
+var HTTPS_CLIENT_CERT = process.env.HTTPS_CLIENT_CERT || '';
+var HTTPS_CLIENT_PRIVATE_KEY = process.env.HTTPS_CLIENT_PRIVATE_KEY || '';
+var credentials = {
+	key:  HTTPS_CLIENT_PRIVATE_KEY,
+	cert: HTTPS_CLIENT_CERT,
+};
+
+
 var app = express();
-app.get("/debug", function(req, res, next) {
-    res.send(JSON.stringify(log));
-});
-app.get("/stids", function(req, res, next) {
-    res.send(JSON.stringify(SENSOR_TYPE_IDs));
-});
-app.get("/sids", function(req, res, next) {
-    res.send(JSON.stringify(SENSOR_IDs));
-});
-app.listen(8080, function () {
-  console.log('Example app listening on port 8080');
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
+
+app.get("/status", function(req, res) {
+    res.send("active");
 });
 
+var vendor = "databoxtosh";
 
-var DATASTORE_TIMESERIES_ENDPOINT = process.env.DATABOX_OS_MONITOR_DRIVER_DATASTORE_TIMESERIES_ENDPOINT;
-
-
-var sensors = ['loadavg1','loadavg5','loadavg15','freemem'];
-var SENSOR_TYPE_IDs = [];
-var SENSOR_IDs = {};
-
-var VENDOR_ID = null;
-var DRIVER_ID = null;
-var DATASTORE_ID = null;
-
-
-databox_directory.register('databox','databox-os-monitor-driver','Cool OS monitoring driver')
-  .then((ids) => {
-    console.log(ids);
-    VENDOR_ID = ids['vendor_id'];
-    DRIVER_ID = ids['driver_id'];
-    
-    console.log("VENDOR_ID", VENDOR_ID);
-    console.log("DRIVER_ID", DRIVER_ID);
-
-    return databox_directory.get_datastore_id('databox-os-monitor-driver-datastore-timeseries');
-  })
-  .then ((datastore_id) => {
-    DATASTORE_ID = datastore_id;
-    console.log("DATASTORE_ID", DATASTORE_ID);
+databoxDatasourceHelper.waitForDatastore(DATASTORE_BLOB_ENDPOINT)
+  .then(() =>{
     proms = [
-      databox_directory.register_sensor_type('loadavg1'),
-      databox_directory.register_sensor_type('loadavg5'),
-      databox_directory.register_sensor_type('loadavg15'),
-      databox_directory.register_sensor_type('freemem')
-    ]
+      databoxDatasourceHelper.registerDatasource(DATASTORE_BLOB_ENDPOINT, 'databox-store-blob', vendor, 'loadavg1','loadavg1', '%', 'Databox load average 1 minuet', 'The databox'),
+      databoxDatasourceHelper.registerDatasource(DATASTORE_BLOB_ENDPOINT, 'databox-store-blob', vendor, 'loadavg5','loadavg5', '%', 'Databox load average 5 minuets', 'The databox'),
+      databoxDatasourceHelper.registerDatasource(DATASTORE_BLOB_ENDPOINT, 'databox-store-blob', vendor, 'loadavg15','loadavg15', '%', 'Databox load average 15 minuets', 'The databox'),
+      databoxDatasourceHelper.registerDatasource(DATASTORE_BLOB_ENDPOINT, 'databox-store-blob', vendor, 'freemem','freemem', 'bytes', 'Free memory in bytes', 'The databox'),
+    ];
     return Promise.all(proms);
   })
-  .then ((sensorTypeIds) => {
-    console.log('sensorTypeIds::', sensorTypeIds);
-    SENSOR_TYPE_IDs = sensorTypeIds;
-    proms = [
-      databox_directory.register_sensor(DRIVER_ID, SENSOR_TYPE_IDs[0].id, DATASTORE_ID, VENDOR_ID, 'loadavg1', 'percent', '', 'System load over 1 minuet', 'In the databox'),
-      databox_directory.register_sensor(DRIVER_ID, SENSOR_TYPE_IDs[1].id, DATASTORE_ID, VENDOR_ID, 'loadavg5', 'percent', '', 'System load over 5 minuet', 'In the databox'),
-      databox_directory.register_sensor(DRIVER_ID, SENSOR_TYPE_IDs[2].id, DATASTORE_ID, VENDOR_ID, 'loadavg15', 'percent', '', 'System load over 15 minuet', 'In the databox'),
-      databox_directory.register_sensor(DRIVER_ID, SENSOR_TYPE_IDs[3].id, DATASTORE_ID, VENDOR_ID, 'freemem', 'bytes', 'b', 'Free memory', 'In the databox'),
-    ]
-    return Promise.all(proms);
-  })
-  .then((sensorIds) => {
-    console.log("sensorIds::", sensorIds); 
-    for(var i = 0; i < SENSOR_TYPE_IDs.length; i++) {
-      SENSOR_IDs[sensors[i]] = sensorIds[i].id;
-    }
-
-    console.log("SENSOR_IDs", SENSOR_IDs);
-
-    function saveReading(name,reading) {
-      var options = {
-          uri: DATASTORE_TIMESERIES_ENDPOINT + '/reading',
-          method: 'POST',
-          json: 
-          {
-            sensor_id: SENSOR_IDs[name], 
-            vendor_id: VENDOR_ID, 
-            value: reading   
-          }
-      };
-      request.post(options, (error, response, body) => {console.log(error, body)});
-    }
-
+  .then(()=>{
+    https.createServer(credentials, app).listen(8080);
 
     monitor.start({ delay: 5000 });
 
@@ -114,18 +56,23 @@ databox_directory.register('databox','databox-os-monitor-driver','Cool OS monito
 
       saveReading('loadavg1', event['loadavg'][0]);
       saveReading('loadavg5', event['loadavg'][1]);
-      saveReading('loadavg15', event['loadavg'][2]);
+      saveReading('loadavg15',event['loadavg'][2]);
       saveReading('freemem', event['freemem']);
 
     });
-  })
-  .catch((err) => {
-    console.log(err);
-  })
+  });
 
+function saveReading(datasourceid,data) {
+      console.log("Saving data::", datasourceid, data);
+      var options = {
+          uri: DATASTORE_BLOB_ENDPOINT + "/" + datasourceid + '/ts/',
+          method: 'POST',
+          json: 
+          {
+            'data': data   
+          },
+      };
+      databoxRequest(options, (error, response, body) => { if(error) console.log(error, body);});
+    }
 
-
-
-
-
-
+module.exports = app;
