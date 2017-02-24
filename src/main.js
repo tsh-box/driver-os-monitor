@@ -12,11 +12,11 @@ var databoxDatasourceHelper = require('./lib/databox-datasource-helper.js');
 // Get the needed Environment variables 
 //
 var DATASTORE_BLOB_ENDPOINT = process.env.DATABOX_OS_MONITOR_DRIVER_DATABOX_STORE_BLOB_ENDPOINT;
-var HTTPS_CLIENT_CERT = process.env.HTTPS_CLIENT_CERT || '';
-var HTTPS_CLIENT_PRIVATE_KEY = process.env.HTTPS_CLIENT_PRIVATE_KEY || '';
+var HTTPS_SERVER_CERT = process.env.HTTPS_SERVER_CERT || '';
+var HTTPS_SERVER_PRIVATE_KEY = process.env.HTTPS_SERVER_PRIVATE_KEY || '';
 var credentials = {
-	key:  HTTPS_CLIENT_PRIVATE_KEY,
-	cert: HTTPS_CLIENT_CERT,
+	key:  HTTPS_SERVER_PRIVATE_KEY,
+	cert: HTTPS_SERVER_CERT,
 };
 
 
