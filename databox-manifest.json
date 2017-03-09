@@ -21,12 +21,7 @@
 		"url": "git+https://github.com/me-box/databox-os-monitor-driver.git"
 	},
 
-	"network-permissions": [
-	],
-	"hardware-permissions": [
-	],
-
 	"resource-requirements": {
-    "store":"databox-store-blob"
+    	"store":"databox-store-blob"
 	}
 }
