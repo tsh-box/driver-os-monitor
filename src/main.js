@@ -4,14 +4,12 @@ var express = require("express");
 var bodyParser = require("body-parser");
 
 var monitor = require("os-monitor");
-
-var databoxRequest = require('./lib/databox-request-promise.js');
-var databoxDatasourceHelper = require('./lib/databox-datasource-helper.js');
+const databox = require('node-databox');
 
 //
 // Get the needed Environment variables 
 //
-var DATASTORE_BLOB_ENDPOINT = process.env.DATABOX_OS_MONITOR_DRIVER_DATABOX_STORE_BLOB_ENDPOINT;
+var DATABOX_STORE_BLOB_ENDPOINT = process.env.DATABOX_OS_MONITOR_DRIVER_DATABOX_STORE_BLOB_ENDPOINT;
 var HTTPS_SERVER_CERT = process.env.HTTPS_SERVER_CERT || '';
 var HTTPS_SERVER_PRIVATE_KEY = process.env.HTTPS_SERVER_PRIVATE_KEY || '';
 var credentials = {
@@ -19,6 +17,7 @@ var credentials = {
 	cert: HTTPS_SERVER_CERT,
 };
 
+var PORT = process.env.port || '8080';
 
 var app = express();
 app.use(bodyParser.json());
@@ -28,20 +27,61 @@ app.get("/status", function(req, res) {
     res.send("active");
 });
 
-var vendor = "databoxtosh";
+var vendor = "databox inc";
 
-databoxDatasourceHelper.waitForDatastore(DATASTORE_BLOB_ENDPOINT)
-  .then(() =>{
+//databox.waitForStoreStatus(DATABOX_STORE_BLOB_ENDPOINT,'active',10)
+  new Promise((resolve,reject)=>{
+    setTimeout(resolve,1000);
+  })
+  .then(() => {
+    
     proms = [
-      databoxDatasourceHelper.registerDatasource(DATASTORE_BLOB_ENDPOINT, 'databox-store-blob', vendor, 'loadavg1','loadavg1', '%', 'Databox load average 1 minuet', 'The databox'),
-      databoxDatasourceHelper.registerDatasource(DATASTORE_BLOB_ENDPOINT, 'databox-store-blob', vendor, 'loadavg5','loadavg5', '%', 'Databox load average 5 minuets', 'The databox'),
-      databoxDatasourceHelper.registerDatasource(DATASTORE_BLOB_ENDPOINT, 'databox-store-blob', vendor, 'loadavg15','loadavg15', '%', 'Databox load average 15 minuets', 'The databox'),
-      databoxDatasourceHelper.registerDatasource(DATASTORE_BLOB_ENDPOINT, 'databox-store-blob', vendor, 'freemem','freemem', 'bytes', 'Free memory in bytes', 'The databox'),
+      databox.catalog.registerDatasource(DATABOX_STORE_BLOB_ENDPOINT, {
+        description: 'Databox load average 1 minuet',
+        contentType: 'text/json',
+        vendor: 'Databox Inc.',
+        unit:'%',
+        type: 'loadavg1',
+        datasourceid: 'loadavg1',
+        storeType: 'databox-store-blob'
+      }),
+
+      databox.catalog.registerDatasource(DATABOX_STORE_BLOB_ENDPOINT, {
+        description: 'Databox load average 5 minuets',
+        contentType: 'text/json',
+        vendor: 'Databox Inc.',
+        unit:'%',
+        type: 'loadavg5',
+        datasourceid: 'loadavg5',
+        storeType: 'databox-store-blob'
+      }),
+
+      databox.catalog.registerDatasource(DATABOX_STORE_BLOB_ENDPOINT, {
+        description: 'Databox load average 15 minuets',
+        contentType: 'text/json',
+        vendor: 'Databox Inc.',
+        unit:'%',
+        type: 'loadavg15',
+        datasourceid: 'loadavg15',
+        storeType: 'databox-store-blob'
+      }),
+
+       databox.catalog.registerDatasource(DATABOX_STORE_BLOB_ENDPOINT, {
+        description: 'Free memory in bytes',
+        contentType: 'text/json',
+        vendor: 'Databox Inc.',
+        unit:'bytes',
+        type: 'freemem',
+        datasourceid: 'freemem',
+        storeType: 'databox-store-blob'
+      })
+      
     ];
+    
     return Promise.all(proms);
   })
   .then(()=>{
-    https.createServer(credentials, app).listen(8080);
+    https.createServer(credentials, app).listen(PORT);
 
     monitor.start({ delay: 5000 });
 
@@ -54,25 +94,26 @@ databoxDatasourceHelper.waitForDatastore(DATASTORE_BLOB_ENDPOINT)
       var freemem = event[freemem];
       console.log(loadavg1);
 
-      saveReading('loadavg1', event['loadavg'][0]);
-      saveReading('loadavg5', event['loadavg'][1]);
-      saveReading('loadavg15',event['loadavg'][2]);
-      saveReading('freemem', event['freemem']);
+      save('loadavg1', event['loadavg'][0]);
+      save('loadavg5', event['loadavg'][1]);
+      save('loadavg15',event['loadavg'][2]);
+      save('freemem', event['freemem']);
+
+      function save(datasourceid,data) {
+        console.log("Saving data::", datasourceid, data);
+        
+        databox.timeseries.write(DATABOX_STORE_BLOB_ENDPOINT, datasourceid, data)
+        .catch((error)=>{
+          console.log("[Error writing to store]", error);
+        });
+      }
 
     });
+  })
+  .catch((err)=>{
+    console.log("[ERROR]",err);
   });
 
-function saveReading(datasourceid,data) {
-      console.log("Saving data::", datasourceid, data);
-      var options = {
-          uri: DATASTORE_BLOB_ENDPOINT + "/" + datasourceid + '/ts/',
-          method: 'POST',
-          json: 
-          {
-            'data': data   
-          },
-      };
-      databoxRequest(options, (error, response, body) => { if(error) console.log(error, body);});
-    }
 
+  
 module.exports = app;
