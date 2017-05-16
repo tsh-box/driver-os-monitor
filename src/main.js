@@ -1,21 +1,30 @@
 /*jshint esversion: 6 */
-var https = require('https');
-var express = require("express");
-var bodyParser = require("body-parser");
+const https = require('https');
+const express = require("express");
+const bodyParser = require("body-parser");
+const fs = require('fs');
 
-var monitor = require("os-monitor");
-const databox = require('node-databox');
+const monitor = require("os-monitor");
+
 
 //
 // Get the needed Environment variables 
 //
-var DATABOX_STORE_BLOB_ENDPOINT = process.env.DATABOX_OS_MONITOR_DRIVER_DATABOX_STORE_BLOB_ENDPOINT;
-var HTTPS_SERVER_CERT = process.env.HTTPS_SERVER_CERT || '';
-var HTTPS_SERVER_PRIVATE_KEY = process.env.HTTPS_SERVER_PRIVATE_KEY || '';
+const DATABOX_STORE_BLOB_ENDPOINT = process.env.DATABOX_STORE_ENDPOINT;
+
+//HTTPS certs created by the container mangers for this components HTTPS server.
+const HTTPS_SECRETS = JSON.parse( fs.readFileSync("/run/secrets/DATABOX_PEM") );
 var credentials = {
-	key:  HTTPS_SERVER_PRIVATE_KEY,
-	cert: HTTPS_SERVER_CERT,
+	key:  HTTPS_SECRETS.clientprivate || '',
+	cert: HTTPS_SECRETS.clientcert || '',
 };
+
+//TODO fix this in node-databox lib
+process.env.ARBITER_TOKEN = fs.readFileSync("/run/secrets/ARBITER_TOKEN",{encoding:'base64'});
+process.env.DATABOX_ARBITER_ENDPOINT = "https://databox-arbiter:8080";
+process.env.CM_HTTPS_CA_ROOT_CERT = fs.readFileSync("/run/secrets/DATABOX_ROOT_CA");
+
+const databox = require('node-databox');
 
 var PORT = process.env.port || '8080';
 
@@ -29,10 +38,7 @@ app.get("/status", function(req, res) {
 
 var vendor = "databox inc";
 
-//databox.waitForStoreStatus(DATABOX_STORE_BLOB_ENDPOINT,'active',10)
-  new Promise((resolve,reject)=>{
-    setTimeout(resolve,1000);
-  })
+databox.waitForStoreStatus(DATABOX_STORE_BLOB_ENDPOINT,'active',10)
   .then(() => {
     
     proms = [
