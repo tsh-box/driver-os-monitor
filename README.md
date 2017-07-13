@@ -1,2 +1,3 @@
-# databox-os-monitor-driver
-Demo driver to monitor the databox hardware
+# driver-os-monitor
+
+Demo driver to monitor the databox hardware load average and Memory consumption

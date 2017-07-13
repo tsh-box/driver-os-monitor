@@ -6,6 +6,7 @@ const fs = require('fs');
 
 const monitor = require("os-monitor");
 
+const databox = require('node-databox');
 
 //
 // Get the needed Environment variables 
@@ -19,12 +20,6 @@ var credentials = {
 	cert: HTTPS_SECRETS.clientcert || '',
 };
 
-//TODO fix this in node-databox lib
-process.env.ARBITER_TOKEN = fs.readFileSync("/run/secrets/ARBITER_TOKEN",{encoding:'base64'});
-process.env.DATABOX_ARBITER_ENDPOINT = "https://databox-arbiter:8080";
-process.env.CM_HTTPS_CA_ROOT_CERT = fs.readFileSync("/run/secrets/DATABOX_ROOT_CA");
-
-const databox = require('node-databox');
 
 var PORT = process.env.port || '8080';
 
@@ -49,7 +44,7 @@ databox.waitForStoreStatus(DATABOX_STORE_BLOB_ENDPOINT,'active',10)
         unit:'%',
         type: 'loadavg1',
         datasourceid: 'loadavg1',
-        storeType: 'databox-store-blob'
+        storeType: 'store-json'
       }),
 
       databox.catalog.registerDatasource(DATABOX_STORE_BLOB_ENDPOINT, {
@@ -59,7 +54,7 @@ databox.waitForStoreStatus(DATABOX_STORE_BLOB_ENDPOINT,'active',10)
         unit:'%',
         type: 'loadavg5',
         datasourceid: 'loadavg5',
-        storeType: 'databox-store-blob'
+        storeType: 'store-json'
       }),
 
       databox.catalog.registerDatasource(DATABOX_STORE_BLOB_ENDPOINT, {
@@ -69,7 +64,7 @@ databox.waitForStoreStatus(DATABOX_STORE_BLOB_ENDPOINT,'active',10)
         unit:'%',
         type: 'loadavg15',
         datasourceid: 'loadavg15',
-        storeType: 'databox-store-blob'
+        storeType: 'store-json'
       }),
 
        databox.catalog.registerDatasource(DATABOX_STORE_BLOB_ENDPOINT, {
@@ -79,7 +74,7 @@ databox.waitForStoreStatus(DATABOX_STORE_BLOB_ENDPOINT,'active',10)
         unit:'bytes',
         type: 'freemem',
         datasourceid: 'freemem',
-        storeType: 'databox-store-blob'
+        storeType: 'store-json'
       })
       
     ];
