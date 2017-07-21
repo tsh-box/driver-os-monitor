@@ -14,11 +14,7 @@ const databox = require('node-databox');
 const DATABOX_STORE_BLOB_ENDPOINT = process.env.DATABOX_STORE_ENDPOINT;
 
 //HTTPS certs created by the container mangers for this components HTTPS server.
-const HTTPS_SECRETS = JSON.parse( fs.readFileSync("/run/secrets/DATABOX_PEM") );
-var credentials = {
-	key:  HTTPS_SECRETS.clientprivate || '',
-	cert: HTTPS_SECRETS.clientcert || '',
-};
+credentials = databox.getHttpsCredentials();
 
 
 var PORT = process.env.port || '8080';
