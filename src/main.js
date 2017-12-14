@@ -85,7 +85,7 @@ tsc.RegisterDatasource(loadavg1)
 
 https.createServer(credentials, app).listen(PORT);
 
-monitor.start({ delay: 5000 });
+monitor.start({ delay: 1000 });
 
 // define handler that will always fire every cycle
 monitor.on('monitor', function(event) {
