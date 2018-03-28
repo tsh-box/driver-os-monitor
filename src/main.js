@@ -30,8 +30,8 @@ app.get("/status", function(req, res) {
 
 var vendor = "databox inc";
 
-let tsc = databox.NewTimeSeriesClient(DATABOX_ZMQ_ENDPOINT, false);
-
+//Blob data sources
+let tsbc = databox.NewTimeSeriesBlobClient(DATABOX_ZMQ_ENDPOINT, false);
 let loadavg1 = databox.NewDataSourceMetadata();
 loadavg1.Description = 'Databox load average 1 minute';
 loadavg1.ContentType = 'application/json';
@@ -68,15 +68,41 @@ freemem.DataSourceType = 'freemem';
 freemem.DataSourceID = 'freemem';
 freemem.StoreType = 'ts';
 
-tsc.RegisterDatasource(loadavg1)
+//Structured data sources
+let tsc = databox.NewTimeSeriesClient(DATABOX_ZMQ_ENDPOINT, false);
+let loadavg1Structured = databox.NewDataSourceMetadata();
+loadavg1Structured.Description = 'Databox load average 1 minute structured';
+loadavg1Structured.ContentType = 'application/json';
+loadavg1Structured.Vendor = 'Databox Inc.';
+loadavg1Structured.Unit = '%';
+loadavg1Structured.DataSourceType = 'loadavg1Structured';
+loadavg1Structured.DataSourceID = 'loadavg1Structured';
+loadavg1Structured.StoreType = 'ts';
+
+let freememStructured = databox.NewDataSourceMetadata();
+freememStructured.Description = 'Databox free memory in bytes structured';
+freememStructured.ContentType = 'application/json';
+freememStructured.Vendor = 'Databox Inc.';
+freememStructured.Unit = 'bytes';
+freememStructured.DataSourceType = 'freememStructured';
+freememStructured.DataSourceID = 'freememStructured';
+freememStructured.StoreType = 'ts';
+
+tsbc.RegisterDatasource(loadavg1)
 .then(()=>{
-  return tsc.RegisterDatasource(loadavg5);
+  return tsbc.RegisterDatasource(loadavg5);
 })
 .then(()=>{
-  return tsc.RegisterDatasource(loadavg15);
+  return tsbc.RegisterDatasource(loadavg15);
 })
 .then(()=>{
-  return tsc.RegisterDatasource(freemem);
+  return tsbc.RegisterDatasource(freemem);
+})
+.then(()=>{
+  return tsc.RegisterDatasource(loadavg1Structured);
+})
+.then(()=>{
+  return tsc.RegisterDatasource(freememStructured);
 })
 .catch((err)=>{
   console.log("Error registering data source:" + err);
@@ -96,18 +122,28 @@ monitor.on('monitor', function(event) {
   var freemem = event[freemem];
   console.log(loadavg1);
 
-  save('loadavg1', event['loadavg'][0]);
-  save('loadavg5', event['loadavg'][1]);
-  save('loadavg15',event['loadavg'][2]);
-  save('freemem', event['freemem']);
+  saveBlob('loadavg1', event['loadavg'][0]);
+  saveBlob('loadavg5', event['loadavg'][1]);
+  saveBlob('loadavg15',event['loadavg'][2]);
+  saveBlob('freemem', event['freemem']);
 
-  function save(datasourceid,data) {
-    console.log("Saving data::", datasourceid, {"data":data});
-    json = {"data":data};
+  saveStructured('loadavg1Structured', event['loadavg'][0]);
+  saveStructured('freememStructured', event['freemem']);
+
+
+  function saveBlob(datasourceid,data) {
+    let json = {"data":data};
+    console.log("Saving data::", datasourceid, json);
+    tsbc.Write(datasourceid,json)
+    .catch((error)=>{
+      console.log("Error writing to store:", error);
+    });
+  }
+
+  function saveStructured(datasourceid,data) {
+    let json = {"value":data};
+    console.log("Saving data::", datasourceid, json);
     tsc.Write(datasourceid,json)
-    .then((resp)=>{
-      console.log("Save got response ", resp);
-    })
     .catch((error)=>{
       console.log("Error writing to store:", error);
     });
