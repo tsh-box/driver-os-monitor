@@ -21,7 +21,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/me-box/driver-os-monitor.git"
+    "url": "git+https://github.com/tsh2/driver-os-monitor.git"
   },
   "keywords": [
     "docker",
@@ -31,9 +31,9 @@
   "author": "Anthony Brown <Anthony.Brown@nottingham.ac.uk> ()",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/me-box/driver-os-monitor/issues"
+    "url": "https://github.com/tsh2/driver-os-monitor/issues"
   },
-  "homepage": "https://github.com/me-box/driver-os-monitor",
+  "homepage": "https://github.com/tsh2/driver-os-monitor",
   "dependencies": {
     "body-parser": "^1.18.2",
     "express": "^4.16.3",

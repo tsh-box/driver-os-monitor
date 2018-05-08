@@ -15,10 +15,10 @@
 		"os"
 	],
 
-	"homepage": "https://github.com/me-box/driver-os-monitor",
+	"homepage": "https://github.com/tsh2/driver-os-monitor",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/me-box/driver-os-monitor.git"
+		"url": "git+https://github.com/tsh2/driver-os-monitor.git"
 	},
 
 	"resource-requirements": {
